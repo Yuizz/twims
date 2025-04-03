@@ -4,10 +4,35 @@ import webrtcvad
 from pywhispercpp.model import Model
 import queue
 import threading
-import os
 import contextlib
 
-MODEL_PATH = "ggml-large-v3-turbo-q8_0.bin"
+import os
+import sys
+from dotenv import load_dotenv
+
+load_dotenv()
+def get_model_path():
+    # 1. Checa si existe una variable de entorno
+    model_env = os.getenv("TWIMS_MODEL_PATH")
+    if model_env and os.path.isfile(model_env):
+        return model_env
+
+    # 2. Checa si estás en modo PyInstaller (ejecutable)
+    if getattr(sys, 'frozen', False):
+        exe_dir = os.path.dirname(sys.executable)
+    else:
+        # 3. En desarrollo, usa la ruta del script
+        exe_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # 4. Usa modelo en la misma carpeta que el ejecutable/script
+    return os.path.join(exe_dir, "ggml.bin")
+
+
+MODEL_PATH = get_model_path()
+
+if not os.path.isfile(MODEL_PATH):
+    raise FileNotFoundError(f"❌ Modelo no encontrado en: {MODEL_PATH}")
+
 NUM_THREADS = 4
 SAMPLE_RATE = 16000
 CHUNK_SIZE = 480  # 30 ms requerido por VAD
@@ -33,25 +58,29 @@ model = Model(
 audio_queue = queue.Queue()
 
 def transcribe_worker():
-    SILENCE_PADDING_DURATION = 0.5  # segundos de padding al final
+    SILENCE_PADDING_DURATION = 0.5  # seconds of padding at the end
     silence_padding = np.zeros(int(SAMPLE_RATE * SILENCE_PADDING_DURATION), dtype=np.float32)
 
     while True:
         audio_data = audio_queue.get()
         if audio_data is None:
             break
-        audio_np = np.frombuffer(b''.join(audio_data), dtype=np.int16).astype(np.float32) / 32768.0
+        try:
+            audio_np = np.frombuffer(b''.join(audio_data), dtype=np.int16).astype(np.float32) / 32768.0
 
-        if len(audio_np) < SAMPLE_RATE:
-            audio_np = np.concatenate((audio_np, silence_padding))
+            if len(audio_np) < SAMPLE_RATE:
+                audio_np = np.concatenate((audio_np, silence_padding))
 
-        with open(os.devnull, 'w') as devnull:
-            with contextlib.redirect_stderr(devnull):
-                segments = model.transcribe(audio_np)
+            with open(os.devnull, 'w') as devnull:
+                with contextlib.redirect_stderr(devnull):
+                    segments = model.transcribe(audio_np)
 
-        for seg in segments:
-            print(f"🎤 {seg.text.strip()}", flush=True)
-        audio_queue.task_done()
+            for seg in segments:
+                print(f"🎤 {seg.text.strip()}", flush=True)
+        except Exception as e:
+            print(f"Error during transcription: {e}", flush=True)
+        finally:
+            audio_queue.task_done()
 
 # Hilo separado para Whisper
 threading.Thread(target=transcribe_worker, daemon=True).start()

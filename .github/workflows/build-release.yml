@@ -2,7 +2,7 @@ name: Build Release Executable
 
 on:
   release:
-    types: [published, prereleased]
+    types: [published]
 
 permissions:
   contents: write
@@ -34,9 +34,18 @@ jobs:
           pip install -r requirements.txt
           pip install pyinstaller requests
 
+      - name: Build with build.py
+        run: |
+          python build.py \
+            --clean \
+            --output="twims_${{ github.event.release.tag_name }}" \
+            --console \
+            --download-model \
+            --model-url="https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo-q8_0.bin" \
+
       - name: Build executable
         run: |
-          pyinstaller main.py --onefile --noconsole
+          pyinstaller main.py --onefile --name "twims_${{ github.event.release.tag_name }}"
 
       - name: Download Whisper model from Hugging Face
         run: |
@@ -59,6 +68,8 @@ jobs:
       - name: Upload release asset
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ env.ZIP_NAME }}
+          files: |
+            ${{ env.ZIP_NAME }}
+            dist/twims_${{ github.event.release.tag_name }}.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
