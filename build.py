@@ -23,7 +23,11 @@ def build_executable(entry_point, output_name, console):
         entry_point,
         "--onefile",
         f"--name={output_name}",
+        "--hidden-import=numpy",
+        "--hidden-import=numpy.core._multiarray_umath",
+        "--collect-submodules=numpy"
     ]
+
     if not console:
         cmd.append("--noconsole")
 
