@@ -30,13 +30,17 @@ jobs:
         run: |
           curl -L -o dist/ggml-large-v3-turbo-q8_0.bin https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo-q8_0.bin
 
+      - name: Set release zip name
+        id: zipname
+        run: echo "ZIP_NAME=twims_${{ github.event.release.tag_name }}.zip" >> $GITHUB_ENV
+        
       - name: Create ZIP archive
         run: |
-          Compress-Archive -Path dist\* -DestinationPath twims_release.zip
-
+          Compress-Archive -Path dist\* -DestinationPath ${{ env.ZIP_NAME }}
+        
       - name: Upload release asset
         uses: softprops/action-gh-release@v2
         with:
-          files: twims_release.zip
+          files: ${{ env.ZIP_NAME }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
