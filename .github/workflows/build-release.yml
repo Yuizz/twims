@@ -2,7 +2,7 @@ name: Build Release Executable
 
 on:
   release:
-    types: [published]
+    types: [published, prereleased]
 
 jobs:
   build:
