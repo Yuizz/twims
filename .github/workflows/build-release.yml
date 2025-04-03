@@ -3,7 +3,9 @@ name: Build Release Executable
 on:
   release:
     types: [published, prereleased]
-  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -53,7 +55,7 @@ jobs:
         run: |
           echo "Creating archive: $env:ZIP_NAME"
           Compress-Archive -Path "dist\*" -DestinationPath "$env:ZIP_NAME"
-        
+      
       - name: Upload release asset
         uses: softprops/action-gh-release@v2
         with:
