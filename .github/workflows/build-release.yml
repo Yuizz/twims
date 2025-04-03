@@ -49,41 +49,41 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  build-macos:
-    name: Build for macOS (Whisper.cpp)
-    runs-on: macos-latest
+  # build-macos:
+  #   name: Build for macOS (Whisper.cpp)
+  #   runs-on: macos-latest
 
-    steps:
-      - uses: actions/checkout@v4
+  #   steps:
+  #     - uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+  #     - name: Setup Python
+  #       uses: actions/setup-python@v5
+  #       with:
+  #         python-version: '3.11'
 
-      - name: Install Homebrew dependencies
-        run: brew install portaudio ffmpeg
+  #     - name: Install Homebrew dependencies
+  #       run: brew install portaudio ffmpeg
 
-      - name: Install Python dependencies
-        run: |
-          pip install --upgrade pip
-          pip install -r requirements-cpp.txt
-          pip install pyinstaller requests
+  #     - name: Install Python dependencies
+  #       run: |
+  #         pip install --upgrade pip
+  #         pip install -r requirements-cpp.txt
+  #         pip install pyinstaller requests
 
-      - name: Build with build.py (Whisper.cpp)
-        run: |
-          python build.py --clean --engine=cpp --download-model \
-            --model-url="https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo-q8_0.bin" \
-            --model-name=ggml.bin --output="twims_macos_${{ github.event.release.tag_name }}" --console
+  #     - name: Build with build.py (Whisper.cpp)
+  #       run: |
+  #         python build.py --clean --engine=cpp --download-model \
+  #           --model-url="https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo-q8_0.bin" \
+  #           --model-name=ggml.bin --output="twims_macos_${{ github.event.release.tag_name }}" --console
 
-      - name: Create ZIP archive
-        run: zip -r "twims_macos_${{ github.event.release.tag_name }}.zip" dist/
+  #     - name: Create ZIP archive
+  #       run: zip -r "twims_macos_${{ github.event.release.tag_name }}.zip" dist/
 
-      - name: Upload release asset
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            twims_macos_${{ github.event.release.tag_name }}.zip
-            dist/twims_macos_${{ github.event.release.tag_name }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #     - name: Upload release asset
+  #       uses: softprops/action-gh-release@v2
+  #       with:
+  #         files: |
+  #           twims_macos_${{ github.event.release.tag_name }}.zip
+  #           dist/twims_macos_${{ github.event.release.tag_name }}
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
