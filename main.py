@@ -7,7 +7,7 @@ import threading
 import os
 import contextlib
 
-MODEL_PATH = "models/ggml-large-v3-turbo.bin"
+MODEL_PATH = "ggml-large-v3-turbo-q8_0.bin"
 NUM_THREADS = 4
 SAMPLE_RATE = 16000
 CHUNK_SIZE = 480  # 30 ms requerido por VAD
