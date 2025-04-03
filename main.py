@@ -36,7 +36,31 @@ if not os.path.isfile(MODEL_PATH):
 NUM_THREADS = 4
 SAMPLE_RATE = 16000
 CHUNK_SIZE = 480  # 30 ms requerido por VAD
-MIC_DEVICE_INDEX = 1  # tu índice verificado del micrófono
+
+def list_microphones():
+    p = pyaudio.PyAudio()
+    mic_list = []
+    for i in range(p.get_device_count()):
+        info = p.get_device_info_by_index(i)
+        if info['maxInputChannels'] > 0:  # Solo dispositivos de entrada
+            mic_list.append((i, info['name']))
+    p.terminate()
+    return mic_list
+
+def select_microphone():
+    microphones = list_microphones()
+    print("Selecciona un micrófono:")
+    for index, name in microphones:
+        print(f"{index}: {name}")
+    
+    selected_index = int(input("Ingresa el índice del micrófono: "))
+    if selected_index not in dict(microphones).keys():
+        raise ValueError("Índice de micrófono no válido.")
+    
+    return selected_index
+
+# Agrega esta línea para seleccionar el micrófono antes de la configuración de PyAudio
+MIC_DEVICE_INDEX = select_microphone()
 
 vad = webrtcvad.Vad(2)
 audio_buffer = []
