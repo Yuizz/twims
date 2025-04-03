@@ -13,11 +13,11 @@ SAMPLE_RATE = 16000
 CHUNK_SIZE = 480  # 30 ms requerido por VAD
 MIC_DEVICE_INDEX = 1  # tu índice verificado del micrófono
 
-vad = webrtcvad.Vad(3)
+vad = webrtcvad.Vad(2)
 audio_buffer = []
 silence_counter = 0
-SILENCE_LIMIT = 5
-MIN_VOICE_FRAMES = 16
+SILENCE_LIMIT = 8
+MIN_VOICE_FRAMES = 20
 
 # Inicializa Whisper
 model = Model(
