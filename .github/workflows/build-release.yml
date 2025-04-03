@@ -17,6 +17,15 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
       - name: Install dependencies
         run: |
           pip install --upgrade pip
@@ -32,20 +41,18 @@ jobs:
           curl -L -o dist/ggml-large-v3-turbo-q8_0.bin https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo-q8_0.bin
 
       - name: Set release zip name
-        id: vars
         run: |
-          echo "ZIP_NAME=twims_${{ github.event.release.tag_name }}.zip" >> $GITHUB_ENV
+          echo "ZIP_NAME=twims_${{ github.event.release.tag_name }}.zip" >> $env:GITHUB_ENV
       
-      - name: Debug show ZIP name
-        run: |
-          echo "ZIP_NAME is: $env:ZIP_NAME"
-        
+      - name: Debug ZIP name
+        shell: pwsh
+        run: echo "ZIP will be named $env:ZIP_NAME"
+      
       - name: Create ZIP archive
         shell: pwsh
         run: |
-          $zipName = "$env:ZIP_NAME"
-          Write-Output "Creating archive: $zipName"
-          Compress-Archive -Path "dist\*" -DestinationPath $zipName
+          echo "Creating archive: $env:ZIP_NAME"
+          Compress-Archive -Path "dist\*" -DestinationPath "$env:ZIP_NAME"
         
       - name: Upload release asset
         uses: softprops/action-gh-release@v2
