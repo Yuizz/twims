@@ -37,9 +37,9 @@ jobs:
       - name: Build with build.py
         run: python build.py --clean --output="twims_${{ github.event.release.tag_name}}" --console --download-model --model-url="https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo-q8_0.bin"
 
-      - name: Build executable
-        run: |
-          pyinstaller main.py --onefile --name "twims_${{ github.event.release.tag_name }}"
+      # - name: Build executable
+      #   run: |
+      #     pyinstaller main.py --onefile --name "twims_${{ github.event.release.tag_name }}"
 
       - name: Download Whisper model from Hugging Face
         run: |
