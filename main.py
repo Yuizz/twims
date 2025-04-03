@@ -9,6 +9,8 @@ import contextlib
 import os
 import sys
 from dotenv import load_dotenv
+from engine_selector import get_engine_from_args_or_auto
+init_model, run_transcription = get_engine_from_args_or_auto()
 
 load_dotenv()
 def get_model_path():
@@ -69,15 +71,7 @@ SILENCE_LIMIT = 8
 MIN_VOICE_FRAMES = 20
 
 # Inicializa Whisper
-model = Model(
-    MODEL_PATH,
-    n_threads=NUM_THREADS, 
-    translate=True,
-    language="auto",
-    print_realtime=False,
-    single_segment=True,
-    no_context=True
-    )
+model = init_model(MODEL_PATH)
 
 audio_queue = queue.Queue()
 
@@ -95,12 +89,8 @@ def transcribe_worker():
             if len(audio_np) < SAMPLE_RATE:
                 audio_np = np.concatenate((audio_np, silence_padding))
 
-            with open(os.devnull, 'w') as devnull:
-                with contextlib.redirect_stderr(devnull):
-                    segments = model.transcribe(audio_np)
-
-            for seg in segments:
-                print(f"🎤 {seg.text.strip()}", flush=True)
+            text = run_transcription(model, audio_np)
+            print(f"🎤 {text.strip()}", flush=True)
         except Exception as e:
             print(f"Error during transcription: {e}", flush=True)
         finally:
