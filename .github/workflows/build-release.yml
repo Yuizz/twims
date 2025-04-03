@@ -8,7 +8,8 @@ permissions:
   contents: write
 
 jobs:
-  build:
+  build-windows:
+    name: Build for Windows (Torch + CUDA)
     runs-on: windows-latest
 
     steps:
@@ -22,45 +23,67 @@ jobs:
       - name: Cache pip dependencies
         uses: actions/cache@v3
         with:
-          path: |
-            ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
-      - name: Cache Whisper model
-        uses: actions/cache@v3
-        with:
-          path: |
-            dist/ggml.bin
-          key: ${{ runner.os }}-whisper-model-large-v3
-          restore-keys: |
-            ${{ runner.os }}-whisper-model-large-v3
+          path: ~/.cache/pip
+          key: windows-pip-${{ hashFiles('**/requirements-torch-cuda.txt') }}
+          restore-keys: windows-pip-
 
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r requirements-torch-cuda.txt
           pip install pyinstaller requests
 
-      - name: Build with build.py
-        run: python build.py --clean --output="twims_${{ github.event.release.tag_name}}" --console --download-model --model-url="https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo-q8_0.bin"
+      - name: Build with build.py (Torch)
+        run: python build.py --clean --engine=torch --model-size=large --output="twims_windows_${{ github.event.release.tag_name }}" --console
 
-      - name: Set release zip name
-        run: |
-          echo "ZIP_NAME=twims_${{ github.event.release.tag_name }}.zip" >> $env:GITHUB_ENV
-      
       - name: Create ZIP archive
-        shell: pwsh
         run: |
-          echo "Creating archive: $env:ZIP_NAME"
-          Compress-Archive -Path "dist\*" -DestinationPath "$env:ZIP_NAME"
-      
+          Compress-Archive -Path dist\* -DestinationPath "twims_windows_${{ github.event.release.tag_name }}.zip"
+
       - name: Upload release asset
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            ${{ env.ZIP_NAME }}
-            dist/twims_${{ github.event.release.tag_name }}.exe
+            twims_windows_${{ github.event.release.tag_name }}.zip
+            dist/twims_windows_${{ github.event.release.tag_name }}.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-macos:
+    name: Build for macOS (Whisper.cpp)
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Homebrew dependencies
+        run: brew install portaudio ffmpeg
+
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements-cpp.txt
+          pip install pyinstaller requests
+
+      - name: Build with build.py (Whisper.cpp)
+        run: |
+          python build.py --clean --engine=cpp --download-model \
+            --model-url="https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo-q8_0.bin" \
+            --model-name=ggml.bin --output="twims_macos_${{ github.event.release.tag_name }}" --console
+
+      - name: Create ZIP archive
+        run: zip -r "twims_macos_${{ github.event.release.tag_name }}.zip" dist/
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            twims_macos_${{ github.event.release.tag_name }}.zip
+            dist/twims_macos_${{ github.event.release.tag_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
