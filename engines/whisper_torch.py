@@ -10,6 +10,7 @@ load_dotenv()
 os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 os.environ["PYTORCH_MPS_FORCE_FALLBACK"] = "1"
 
+engine = "torch"
 def get_device():
     if torch.cuda.is_available():
         print("Using CUDA")
