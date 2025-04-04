@@ -102,6 +102,6 @@ if __name__ == "__main__":
 
     build_executable(args.entry, args.output, args.console, args.engine)
 
-    print(f"\n✅ Build complete: dist/{args.output}/ (engine: {args.engine})")
+    print(f"\nBuild complete: dist/{args.output}/ (engine: {args.engine})")
     if args.engine == "cpp":
-        print(f"📦 Model copied as dist/{args.model_name}")
+        print(f"Model copied as dist/{args.model_name}")
