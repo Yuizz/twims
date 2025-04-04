@@ -16,16 +16,6 @@ def download_model(url, target):
     else:
         print(f"Model already exists: {target}")
 
-def inject_engine(engine_name):
-    source_file = f"engines/whisper_{engine_name}.py"
-    target_file = "engine.py"
-
-    if not os.path.exists(source_file):
-        raise FileNotFoundError(f"Engine not found: {source_file}")
-
-    shutil.copyfile(source_file, target_file)
-    print(f"Injected engine: {engine_name} -> engine.py")
-
 def build_executable(entry_point, output_name, console):
     import site
     site_packages = site.getsitepackages()[0]
@@ -33,8 +23,6 @@ def build_executable(entry_point, output_name, console):
 
     import whisper
     whisper_dir = os.path.dirname(whisper.__file__)
-    mel_path = os.path.join(whisper_dir, "assets", "mel_filters.npz")
-
 
     cmd = [
         "pyinstaller",
@@ -47,12 +35,11 @@ def build_executable(entry_point, output_name, console):
         "--collect-all=numpy",
         "--hidden-import=whisper",
         "--collect-submodules=whisper",
-        # f"--add-data={mel_path}{sep}whisper/assets"
     ]
 
     for asset in os.listdir(os.path.join(whisper_dir, "assets")):
-      full_path = os.path.join(whisper_dir, "assets", asset)
-      cmd.append(f"--add-data={full_path}{sep}whisper/assets")
+        full_path = os.path.join(whisper_dir, "assets", asset)
+        cmd.append(f"--add-data={full_path}{sep}whisper/assets")
 
     if not console:
         cmd.append("--noconsole")
@@ -96,8 +83,6 @@ if __name__ == "__main__":
 
     if args.clean:
         clean_build_dirs()
-
-    inject_engine(args.engine)
 
     if args.engine == "cpp":
         model_path = args.model_path or args.model_name
