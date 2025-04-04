@@ -47,8 +47,12 @@ def build_executable(entry_point, output_name, console):
         "--collect-all=numpy",
         "--hidden-import=whisper",
         "--collect-submodules=whisper",
-        f"--add-data={mel_path}{sep}whisper/assets"
+        # f"--add-data={mel_path}{sep}whisper/assets"
     ]
+
+    for asset in os.listdir(os.path.join(whisper_dir, "assets")):
+      full_path = os.path.join(whisper_dir, "assets", asset)
+      cmd.append(f"--add-data={full_path}{sep}whisper/assets")
 
     if not console:
         cmd.append("--noconsole")
