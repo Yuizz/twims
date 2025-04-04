@@ -5,7 +5,6 @@ import contextlib
 NUM_THREADS = 4
 
 
-engine = "cpp"
 def init_model(model_path: str):
     print("🍎 Usando pywhispercpp (Metal/MPS)")
     return Model(
