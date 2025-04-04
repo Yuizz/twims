@@ -35,7 +35,8 @@ def build_executable(entry_point, output_name, console):
         "--hidden-import=numpy",
         "--hidden-import=numpy.core._multiarray_umath",
         "--collect-submodules=numpy",
-        "--collect-all=numpy"
+        "--collect-all=numpy",
+        "--hidden-import=whisper"
     ]
 
     if not console:
