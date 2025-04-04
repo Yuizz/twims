@@ -20,10 +20,6 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Check CUDA availability
-        run: |
-          python -c "import torch; print(torch.cuda.is_available())"
-
       - name: Cache pip dependencies
         uses: actions/cache@v3
         with:
@@ -38,6 +34,10 @@ jobs:
           pip install -r requirements_torch_cuda.txt
           pip install git+https://github.com/openai/whisper.git
           pip install pyinstaller requests
+
+      - name: Check CUDA availability
+        run: |
+          python -c "import torch; print(torch.cuda.is_available())"
 
       - name: Build with build.py (Torch)
         run: python build.py --clean --engine=torch --model-size=large --output="twims_windows_${{ github.event.release.tag_name }}" --console
