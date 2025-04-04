@@ -8,5 +8,4 @@ torchaudio==2.2.0+cu121
 --extra-index-url https://download.pytorch.org/whl/cu121
 
 # Utilidades necesarias para Whisper
-numpy
 ffmpeg-python

@@ -10,7 +10,7 @@ import os
 import sys
 from dotenv import load_dotenv
 from engine_selector import get_engine_from_args_or_auto
-init_model, run_transcription = get_engine_from_args_or_auto()
+init_model, run_transcription, engine = get_engine_from_args_or_auto()
 
 load_dotenv()
 def get_model_path():
@@ -32,7 +32,7 @@ def get_model_path():
 
 MODEL_PATH = get_model_path()
 
-if not os.path.isfile(MODEL_PATH):
+if engine=="cpp" and not os.path.isfile(MODEL_PATH):
     raise FileNotFoundError(f"❌ Modelo no encontrado en: {MODEL_PATH}")
 
 NUM_THREADS = 4
@@ -90,7 +90,7 @@ def transcribe_worker():
                 audio_np = np.concatenate((audio_np, silence_padding))
 
             text = run_transcription(model, audio_np)
-            print(f"🎤 {text.strip()}", flush=True)
+            print(f"{text.strip()}", flush=True)
         except Exception as e:
             print(f"Error during transcription: {e}", flush=True)
         finally:

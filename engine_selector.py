@@ -21,4 +21,4 @@ def get_engine_from_args_or_auto():
         raise ValueError("Invalid engine selected")
 
     print(f"Engine selected: {selected}")
-    return init_model, run_transcription
+    return init_model, run_transcription, args.engine

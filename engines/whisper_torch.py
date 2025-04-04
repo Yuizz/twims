@@ -36,17 +36,28 @@ def write_wav(audio_np: np.ndarray, filename: str, sample_rate: int = 16000):
         wf.setframerate(sample_rate)
         wf.writeframes(audio_int16.tobytes())
 
+import contextlib
+import io
 def run_transcription(model, audio_np: np.ndarray) -> str:
-    with tempfile.NamedTemporaryFile(suffix=".wav", delete=True) as f:
-        write_wav(audio_np, f.name)
-        result = model.transcribe(
-            f.name,
-            task="translate",
-            # language="en",
-            fp16=torch.cuda.is_available(),
-            no_speech_threshold=0.6,
-            condition_on_previous_text=False,
-            initial_prompt=None,
-            verbose=False
-        )
+    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
+        temp_path = f.name
+
+    try:
+        write_wav(audio_np, temp_path)
+        with contextlib.redirect_stderr(io.StringIO()):
+            result = model.transcribe(
+                temp_path,
+                task="transcribe",
+                fp16=torch.cuda.is_available(),
+                no_speech_threshold=0.6,
+                condition_on_previous_text=False,
+                initial_prompt=None,
+                # language="auto",
+                # verbose=False
+            )
         return result["text"]
+    finally:
+        try:
+            os.remove(temp_path)
+        except Exception as e:
+            print(f"⚠️ No se pudo eliminar el archivo temporal: {e}")
