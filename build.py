@@ -31,6 +31,11 @@ def build_executable(entry_point, output_name, console):
     site_packages = site.getsitepackages()[0]
     sep = ";" if os.name == "nt" else ":"
 
+    import whisper
+    whisper_dir = os.path.dirname(whisper.__file__)
+    mel_path = os.path.join(whisper_dir, "assets", "mel_filters.npz")
+
+
     cmd = [
         "pyinstaller",
         entry_point,
@@ -42,7 +47,7 @@ def build_executable(entry_point, output_name, console):
         "--collect-all=numpy",
         "--hidden-import=whisper",
         "--collect-submodules=whisper",
-        f"--add-data={os.path.join(site_packages, 'whisper/assets/mel_filters.npz')}{sep}whisper/assets"
+        f"--add-data={mel_path}{sep}whisper/assets"
     ]
 
     if not console:
