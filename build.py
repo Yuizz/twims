@@ -27,6 +27,10 @@ def inject_engine(engine_name):
     print(f"Injected engine: {engine_name} -> engine.py")
 
 def build_executable(entry_point, output_name, console):
+    import site
+    site_packages = site.getsitepackages()[0]
+    sep = ";" if os.name == "nt" else ":"
+
     cmd = [
         "pyinstaller",
         entry_point,
@@ -36,7 +40,9 @@ def build_executable(entry_point, output_name, console):
         "--hidden-import=numpy.core._multiarray_umath",
         "--collect-submodules=numpy",
         "--collect-all=numpy",
-        "--hidden-import=whisper"
+        "--hidden-import=whisper",
+        "--collect-submodules=whisper",
+        f"--add-data={os.path.join(site_packages, 'whisper/assets/mel_filters.npz')}{sep}whisper/assets"
     ]
 
     if not console:
