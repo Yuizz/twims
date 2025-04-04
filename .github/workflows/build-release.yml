@@ -12,13 +12,19 @@ jobs:
     name: Build for Windows (Torch + CUDA)
     runs-on: windows-latest
 
+    env:
+      PYTHON_VERSION: '3.11'
+      OUTPUT_NAME: twims_windows_${{ github.event.release.tag_name }}
+      ZIP_NAME: twims_windows_${{ github.event.release.tag_name }}.zip
+      MODEL_NAME: ggml.bin
+
     steps:
       - uses: actions/checkout@v4
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Cache pip dependencies
         uses: actions/cache@v3
@@ -35,23 +41,41 @@ jobs:
           pip install git+https://github.com/openai/whisper.git
           pip install pyinstaller requests
 
-      - name: Check CUDA availability
+      - name: Download UPX (for compression)
         run: |
-          python -c "import torch; print(torch.cuda.is_available())"
+          curl -LO https://github.com/upx/upx/releases/download/v4.2.1/upx-4.2.1-win64.zip
+          tar -xf upx-4.2.1-win64.zip
+          mkdir upx && move upx-4.2.1-win64\* upx
+
+      - name: Check CUDA availability
+        run: python -c "import torch; print('CUDA available:', torch.cuda.is_available())"
 
       - name: Build with build.py (Torch)
-        run: python build.py --clean --engine=torch --model-size=large --output="twims_windows_${{ github.event.release.tag_name }}" --console
-
-      - name: Create ZIP archive
         run: |
-          Compress-Archive -Path dist\* -DestinationPath "twims_windows_${{ github.event.release.tag_name }}.zip"
+          python build.py --clean --engine=torch --model-size=large --output="${{ env.OUTPUT_NAME }}" --console
 
-      - name: Upload release asset
+      - name: Copy EXE to root for easier access
+        run: |
+          copy "dist\${{ env.OUTPUT_NAME }}\${{ env.OUTPUT_NAME }}.exe" "${{ env.OUTPUT_NAME }}.exe"
+
+      - name: Copy ggml model if it exists
+        shell: pwsh
+        run: |
+          if (Test-Path "dist/ggml.bin") {
+            Copy-Item "dist/ggml.bin" "ggml.bin"
+          }
+
+      - name: Create ZIP archive of full dist folder
+        run: |
+          Compress-Archive -Path "dist\${{ env.OUTPUT_NAME }}\*" -DestinationPath "${{ env.ZIP_NAME }}"
+
+      - name: Upload release assets
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            twims_windows_${{ github.event.release.tag_name }}.zip
-            dist/twims_windows_${{ github.event.release.tag_name }}.exe
+            ${{ env.ZIP_NAME }}
+            ${{ env.OUTPUT_NAME }}.exe
+            ggml.bin
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

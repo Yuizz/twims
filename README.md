@@ -50,7 +50,7 @@ Use `build.py` to generate platform-specific builds:
 
 ### Example: Build for CUDA (Windows/Linux)
 ```bash
-python build.py --engine=torch --model-size=base --output=twims_cuda
+python build.py --engine=torch --output=twims_cuda
 ```
 
 ### Example: Build for macOS (with Whisper.cpp)
@@ -70,8 +70,7 @@ python build.py --engine=cpp --download-model \
 ```
 twims/
 ├── main.py
-├── engine.py               # injected at build time
-├── engine_selector.py      # used in dev only
+├── engine_selector.py      # used to select and inject engine
 ├── engines/
 │   ├── whisper_cpp.py
 │   ├── whisper_torch.py
@@ -151,3 +150,38 @@ TWIMS uses the following open source components:
 - [pywhispercpp](https://github.com/abdeladim-s/pywhispercpp) by Abdeladim Sadiki – licensed under the MIT License.
 
 See `LICENSE-THIRD-PARTY.txt` for full details.
+
+## 📦 Release Assets & Update Strategy
+
+TWIMS provides two types of downloadable assets per release to support **easy updates** and **modular builds**.
+
+### ✅ Release Asset Structure
+
+| File                                      | Description                                                                 |
+|-------------------------------------------|-----------------------------------------------------------------------------|
+| `twims_windows_vX.Y.Z.exe`                | Standalone executable for Windows (can be updated independently)           |
+| `twims_windows_vX.Y.Z.zip`                | Full build (`dist/`) with dependencies and assets for fresh install        |
+| `ggml.bin`                                | Whisper.cpp model (if using `--engine=cpp`)                                |
+| `README.txt`                              | Usage instructions included in the `.zip`                                  |
+
+### 🧩 Update Options
+
+- **🆕 Quick Update**  
+  Download the latest `twims.exe` and replace it in your existing folder.  
+  This is great for faster updates without re-downloading all dependencies.
+
+- **📦 Fresh Install**  
+  Download the `.zip`, extract all contents to a folder, and run `twims.exe`.
+
+- **🔁 Replace Whisper Model (CPP engine only)**  
+  1. Get a model from [ggerganov/whisper.cpp](https://huggingface.co/ggerganov/whisper.cpp)  
+  2. Rename it to `ggml.bin`  
+  3. Place it next to the executable
+
+### 🛠 Why This Structure?
+
+This modular release layout is designed to be:
+
+- 🪶 Lightweight for updates  
+- 🔁 Flexible to swap engines/models  
+- 🔒 Safe for future OBS integration or user themes

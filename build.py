@@ -25,12 +25,17 @@ def build_executable(entry_point, output_name, console, engine):
     cmd = [
         "pyinstaller",
         entry_point,
-        "--onefile",
+        "--onedir",
         f"--name={output_name}",
         "--hidden-import=numpy",
         "--hidden-import=numpy.core._multiarray_umath",
         "--collect-submodules=numpy",
-        "--collect-all=numpy",
+        "--exclude-module=tkinter",
+        "--exclude-module=matplotlib",
+        "--exclude-module=scipy",
+        "--exclude-module=pytest",
+        "--exclude-module=setuptools",
+        "--exclude-module=pkg_resources",
     ]
 
     if(engine == "torch"):
@@ -38,8 +43,8 @@ def build_executable(entry_point, output_name, console, engine):
         cmd.append("--collect-submodules=whisper")
         cmd.append("--hidden-import=torch")
         cmd.append("--collect-submodules=torch")
-        cmd.append("--hidden-import=torch.cuda")
-        cmd.append("--collect-submodules=torch.cuda")
+        cmd.append("--upx-dir=upx")  # Asumiendo que lo descargas antes
+        cmd.append("--compress")
 
         for asset in os.listdir(os.path.join(whisper_dir, "assets")):
             full_path = os.path.join(whisper_dir, "assets", asset)
@@ -98,6 +103,6 @@ if __name__ == "__main__":
 
     build_executable(args.entry, args.output, args.console, args.engine)
 
-    print(f"\nBuild complete: dist/{args.output}.exe" + (
-        f" + dist/{args.model_name}" if args.engine == "cpp" else ""
-    ))
+    print(f"\n✅ Build complete: dist/{args.output}/ (engine: {args.engine})")
+    if args.engine == "cpp":
+        print(f"📦 Model copied as dist/{args.model_name}")
