@@ -44,7 +44,6 @@ def build_executable(entry_point, output_name, console, engine):
         cmd.append("--hidden-import=torch")
         cmd.append("--collect-submodules=torch")
         cmd.append("--upx-dir=upx")  # Asumiendo que lo descargas antes
-        cmd.append("--compress")
 
         for asset in os.listdir(os.path.join(whisper_dir, "assets")):
             full_path = os.path.join(whisper_dir, "assets", asset)
