@@ -10,7 +10,10 @@ import os
 import sys
 from dotenv import load_dotenv
 from engine_selector import get_engine_from_args_or_auto
-init_model, run_transcription, engine = get_engine_from_args_or_auto()
+from argparser import parse_args
+
+args = parse_args()
+init_model, run_transcription, engine = get_engine_from_args_or_auto(args)
 
 load_dotenv()
 def get_model_path():
@@ -61,6 +64,48 @@ def select_microphone():
     
     return selected_index
 
+def select_model_size():
+    print("Selecciona un tamaño de modelo:")
+    model_sizes = [
+        {
+            "name": "tiny",
+            "description": "El más pequeño y rápido, ideal para dispositivos más lentos",
+            "ram_usage": "~1GB",
+        },
+        {
+            "name": "base",
+            "description": "El tamaño estándar, equilibrado entre velocidad y precisión",
+            "ram_usage": "~1GB",
+        },
+        {
+            "name": "small",
+            "description": "Un poco más grande, mejor para dispositivos más potentes",
+            "ram_usage": "~2GB",
+        },
+        {
+            "name": "medium",
+            "description": "Ideal para dispositivos de gama media",
+            "ram_usage": "~5GB",
+        },
+        {
+            "name": "large",
+            "description": "El más grande, mejor para dispositivos de gama alta, \n\t recomendado no usar al mismo tiempo que otros programas pesados.",
+            "ram_usage": "~10GB",
+        },
+        {
+            "name": "turbo",
+            "description": "El más grande, pero optimizado, mejor para dispositivos de gama alta, \n\t más ligero que el large, obligatorio el uso de GPU.",
+            "ram_usage": "~6GB",
+        },
+    ]
+    for index, size in enumerate(model_sizes):
+        print(f"{index}: {size['name']} - {size['ram_usage']} RAM: {size['description']}")
+    
+    selected_index = int(input("Ingresa el índice del tamaño de modelo: "))
+    if selected_index not in range(len(model_sizes)):
+        raise ValueError("Índice de tamaño de modelo no válido.")
+    return model_sizes[selected_index]["name"]
+
 # Agrega esta línea para seleccionar el micrófono antes de la configuración de PyAudio
 MIC_DEVICE_INDEX = select_microphone()
 
@@ -71,7 +116,11 @@ SILENCE_LIMIT = 8
 MIN_VOICE_FRAMES = 20
 
 # Inicializa Whisper
-model = init_model(MODEL_PATH)
+model_size = None
+if engine == "torch":
+    model_size = select_model_size()
+
+model = init_model(MODEL_PATH, model_size=model_size)
 
 audio_queue = queue.Queue()
 
@@ -108,7 +157,7 @@ stream = p.open(format=pyaudio.paInt16,
                 frames_per_buffer=CHUNK_SIZE,
                 input_device_index=MIC_DEVICE_INDEX)
 
-print("🔎 Escuchando... (presiona Ctrl+C para salir)")
+print("Escuchando... (presiona Ctrl+C para salir)")
 
 try:
     while True:
@@ -130,7 +179,7 @@ try:
                     audio_buffer.clear()
                     silence_counter = 0
 except KeyboardInterrupt:
-    print("\n🛑 Deteniendo...")
+    print("\nDeteniendo...")
 finally:
     audio_queue.put(None)  # Cierra el hilo
     stream.stop_stream()

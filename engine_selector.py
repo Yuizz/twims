@@ -2,11 +2,7 @@ import platform
 import argparse
 import os
 
-def get_engine_from_args_or_auto():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--engine", choices=["torch", "cpp"], help="Engine to use (only in development)")
-    args, unknown = parser.parse_known_args()
-
+def get_engine_from_args_or_auto(args):
     # Manual override
     if args.engine:
         selected = args.engine

@@ -17,11 +17,10 @@ def get_device():
     print("Using CPU")
     return "cpu"
 
-def init_model(_model_path=None):
+def init_model(_model_path=None, model_size="base"):
     device = get_device()
-    model_name = os.getenv("TWIMS_MODEL_SIZE", "base")
-    print(f"☁️ Loading model '{model_name}' on device: {device}")
-    model = whisper.load_model(model_name, device=device)
+    print(f"Loading model '{model_size}' on device: {device}")
+    model = whisper.load_model(model_size, device=device)
     return model
 
 def float32_to_int16(audio: np.ndarray) -> np.ndarray:
