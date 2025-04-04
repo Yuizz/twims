@@ -5,12 +5,30 @@ from pywhispercpp.model import Model
 import queue
 import threading
 import contextlib
-
 import os
 import sys
 from dotenv import load_dotenv
 from engine_selector import get_engine_from_args_or_auto
 from argparser import parse_args
+
+import subprocess
+# Función para detectar la versión de CUDA
+def get_cuda_version():
+    try:
+        output = subprocess.check_output(['nvcc', '--version']).decode('utf-8')
+        for line in output.splitlines():
+            if 'release' in line:
+                return line.split('release')[-1].strip().split(',')[0]
+    except Exception as e:
+        print(f"Error al detectar la versión de CUDA: {e}")
+        return None
+
+# Imprimir la versión de CUDA al inicio
+cuda_version = get_cuda_version()
+if cuda_version:
+    print(f"Versión de CUDA detectada: {cuda_version}")
+else:
+    print("No se pudo detectar la versión de CUDA.")
 
 args = parse_args()
 init_model, run_transcription, engine = get_engine_from_args_or_auto(args)
@@ -32,10 +50,9 @@ def get_model_path():
     # 4. Usa modelo en la misma carpeta que el ejecutable/script
     return os.path.join(exe_dir, "ggml.bin")
 
-
 MODEL_PATH = get_model_path()
 
-if engine=="cpp" and not os.path.isfile(MODEL_PATH):
+if engine == "cpp" and not os.path.isfile(MODEL_PATH):
     raise FileNotFoundError(f"❌ Modelo no encontrado en: {MODEL_PATH}")
 
 NUM_THREADS = 4

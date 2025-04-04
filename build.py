@@ -16,9 +16,7 @@ def download_model(url, target):
     else:
         print(f"Model already exists: {target}")
 
-def build_executable(entry_point, output_name, console):
-    import site
-    site_packages = site.getsitepackages()[0]
+def build_executable(entry_point, output_name, console, engine):
     sep = ";" if os.name == "nt" else ":"
 
     import whisper
@@ -33,13 +31,19 @@ def build_executable(entry_point, output_name, console):
         "--hidden-import=numpy.core._multiarray_umath",
         "--collect-submodules=numpy",
         "--collect-all=numpy",
-        "--hidden-import=whisper",
-        "--collect-submodules=whisper",
     ]
 
-    for asset in os.listdir(os.path.join(whisper_dir, "assets")):
-        full_path = os.path.join(whisper_dir, "assets", asset)
-        cmd.append(f"--add-data={full_path}{sep}whisper/assets")
+    if(engine == "torch"):
+        cmd.append("--hidden-import=whisper")
+        cmd.append("--collect-submodules=whisper")
+        cmd.append("--hidden-import=torch")
+        cmd.append("--collect-submodules=torch")
+        cmd.append("--hidden-import=torch.cuda")
+        cmd.append("--collect-submodules=torch.cuda")
+
+        for asset in os.listdir(os.path.join(whisper_dir, "assets")):
+            full_path = os.path.join(whisper_dir, "assets", asset)
+            cmd.append(f"--add-data={full_path}{sep}whisper/assets")
 
     if not console:
         cmd.append("--noconsole")
@@ -92,7 +96,7 @@ if __name__ == "__main__":
             download_model(args.model_url, model_path)
         postprocess(model_path, args.model_name)
 
-    build_executable(args.entry, args.output, args.console)
+    build_executable(args.entry, args.output, args.console, args.engine)
 
     print(f"\nBuild complete: dist/{args.output}.exe" + (
         f" + dist/{args.model_name}" if args.engine == "cpp" else ""
