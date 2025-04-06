@@ -110,9 +110,9 @@ if __name__ == "__main__":
             download_model(args.model_url, model_path)
         postprocess(model_path, args.model_name)
 
-    build_executable(args.entry, args.output, args.console, args.engine)
-    
     save_config({"engine": args.engine})
+
+    build_executable(args.entry, args.output, args.console, args.engine)
 
     print(f"\nBuild complete: dist/{args.output}/ (engine: {args.engine})")
     if args.engine == "cpp":
