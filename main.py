@@ -52,7 +52,7 @@ def get_model_path():
 
 MODEL_PATH = get_model_path()
 
-if engine == "cpp" and not os.path.isfile(MODEL_PATH):
+if engine_info["requires_model_path"] and not os.path.isfile(MODEL_PATH):
     raise FileNotFoundError(f"❌ Modelo no encontrado en: {MODEL_PATH}")
 
 NUM_THREADS = 4

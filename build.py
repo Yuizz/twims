@@ -2,6 +2,7 @@ import os
 import subprocess
 import shutil
 import argparse
+import json
 
 def clean_build_dirs():
     for folder in ["build", "dist", "__pycache__"]:
@@ -19,9 +20,6 @@ def download_model(url, target):
 def build_executable(entry_point, output_name, console, engine):
     sep = ";" if os.name == "nt" else ":"
 
-    import whisper
-    whisper_dir = os.path.dirname(whisper.__file__)
-
     cmd = [
         "pyinstaller",
         entry_point,
@@ -34,16 +32,19 @@ def build_executable(entry_point, output_name, console, engine):
         "--exclude-module=matplotlib",
         "--exclude-module=scipy",
         "--exclude-module=pytest",
-        "--exclude-module=setuptools",
-        "--exclude-module=pkg_resources",
+        # "--exclude-module=setuptools",
+        # "--exclude-module=pkg_resources",
         "--exclude-module=torchvision",
         "--exclude-module=torchtext",
         "--exclude-module=torchaudio",
         "--exclude-module=scipy",
         "--exclude-module=matplotlib",
+        f"--add-data=config.json{sep}.",
     ]
 
     if(engine == "torch"):
+        import whisper
+        whisper_dir = os.path.dirname(whisper.__file__)
         cmd.append("--hidden-import=whisper")
         cmd.append("--collect-submodules=whisper")
         cmd.append("--hidden-import=torch")
@@ -91,6 +92,10 @@ def parse_args():
 
     return parser.parse_args()
 
+def save_config(config):
+    with open('config.json', 'w') as f:
+        json.dump(config, f)
+
 if __name__ == "__main__":
     args = parse_args()
 
@@ -106,6 +111,8 @@ if __name__ == "__main__":
         postprocess(model_path, args.model_name)
 
     build_executable(args.entry, args.output, args.console, args.engine)
+    
+    save_config({"engine": args.engine})
 
     print(f"\nBuild complete: dist/{args.output}/ (engine: {args.engine})")
     if args.engine == "cpp":
