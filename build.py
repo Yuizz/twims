@@ -68,8 +68,8 @@ def postprocess(model_path, model_dest_name):
 def parse_args():
     parser = argparse.ArgumentParser(description="TWIMS Build Script")
 
-    parser.add_argument("--engine", choices=["torch", "cpp"], required=True,
-                        help="Engine to inject: 'torch' or 'cpp'")
+    parser.add_argument("--engine", choices=["torch", "cpp", "faster"], required=True,
+                        help="Engine to inject: 'torch' or 'cpp' or 'faster'")
     parser.add_argument("--model-size", type=str, default="base",
                         help="Whisper model size (torch engine only): tiny, base, small, medium, large")
     parser.add_argument("--output", type=str, default="twims",
