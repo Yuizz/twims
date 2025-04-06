@@ -37,9 +37,10 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
-          pip install -r requirements_torch_cuda.txt
+          pip install -r requirements_faster.txt
           pip install git+https://github.com/openai/whisper.git
           pip install pyinstaller requests
+        # pip install -r requirements_torch_cuda.txt
 
       - name: Download UPX (for compression)
         run: |
@@ -52,7 +53,8 @@ jobs:
 
       - name: Build with build.py (Torch)
         run: |
-          python build.py --clean --engine=torch --model-size=large --output="${{ env.OUTPUT_NAME }}" --console
+          python build.py --clean --engine=faster --output="${{ env.OUTPUT_NAME }}" --console
+        # python build.py --clean --engine=torch --model-size=large --output="${{ env.OUTPUT_NAME }}" --console
 
       - name: Copy EXE to root for easier access
         run: |

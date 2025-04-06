@@ -31,7 +31,7 @@ else:
     print("No se pudo detectar la versión de CUDA.")
 
 args = parse_args()
-init_model, run_transcription, engine = get_engine_from_args_or_auto(args)
+init_model, run_transcription, engine, engine_info = get_engine_from_args_or_auto(args)
 
 load_dotenv()
 def get_model_path():
@@ -134,7 +134,7 @@ MIN_VOICE_FRAMES = 20
 
 # Inicializa Whisper
 model_size = None
-if engine == "torch":
+if engine_info["requires_model_size"]:
     model_size = select_model_size()
 
 model = init_model(MODEL_PATH, model_size=model_size)
