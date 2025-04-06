@@ -36,6 +36,11 @@ def build_executable(entry_point, output_name, console, engine):
         "--exclude-module=pytest",
         "--exclude-module=setuptools",
         "--exclude-module=pkg_resources",
+        "--exclude-module=torchvision",
+        "--exclude-module=torchtext",
+        "--exclude-module=torchaudio",
+        "--exclude-module=scipy",
+        "--exclude-module=matplotlib",
     ]
 
     if(engine == "torch"):
